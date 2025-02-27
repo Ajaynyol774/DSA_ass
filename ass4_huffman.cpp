@@ -111,7 +111,6 @@ struct MinHeapNode {
     }
 };
 
-// Sort the nodes based on frequency
 void sortNodes(vector<MinHeapNode*>& nodes) {
     sort(nodes.begin(), nodes.end(), [](MinHeapNode* a, MinHeapNode* b) {
         return a->freq < b->freq;
