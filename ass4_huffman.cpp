@@ -20,26 +20,25 @@ public:
         leftThread = rightThread = false;
     }
 };
-
+ThreadedNode* leftmost(ThreadedNode* node) {
+    if (node == NULL) return NULL;
+    while (node->left != NULL && !node->leftThread)
+        node = node->left;
+    return node;
+}
 
 void inorderTraversal(ThreadedNode* root) {
-    ThreadedNode* current = root;
+    if(!root) return;
+    ThreadedNode* current = leftmost(root);
     while (current != NULL) {
-        while (current->left != NULL && !current->leftThread) {
-            current = current->left;
-        }
-
-        
-        cout << current->data << " ";
-
-        
+            cout << current->data << " ";
         if (current->rightThread) {
             current = current->right;
         } else {
-            
-            current = current->right;
+            current = leftmost(current->right);
         }
     }
+    cout<<endl;
 }
 
 
@@ -65,37 +64,30 @@ ThreadedNode* insertThreaded(ThreadedNode* root, int value) {
         }
     }
 
-    ThreadedNode* newNode = new ThreadedNode(value);
-
+   ThreadedNode* newNode = new ThreadedNode(value);
     if (value < parent->data) {
         newNode->left = parent->left;
         newNode->right = parent;
-        parent->leftThread = true;
+        newNode->leftThread = parent->leftThread;
+        newNode->rightThread = true;
+        parent->leftThread = false;
         parent->left = newNode;
     } else {
         newNode->right = parent->right;
         newNode->left = parent;
-        parent->rightThread = true;
+        newNode->rightThread = parent->rightThread;
+        newNode->leftThread = true;
+        parent->rightThread = false;
         parent->right = newNode;
     }
-
     return root;
 }
 
 
-ThreadedNode* nextInOrder(ThreadedNode* root) {
-    if (root == NULL) return NULL;
-
-    // If right child exists, the next node will be the leftmost child of right subtree
-    if (!root->rightThread) {
-        root = root->right;
-        while (root != NULL && root->left != NULL && !root->leftThread) {
-            root = root->left;
-        }
-        return root;
-    }
-
-    return root->right;
+ThreadedNode* nextInOrder(ThreadedNode* node) {
+    if (node == NULL) return NULL;
+    if (node->rightThread) return node->right;
+    return leftmost(node->right);
 }
 
 
@@ -120,7 +112,6 @@ void sortNodes(vector<MinHeapNode*>& nodes) {
 void printCodes(MinHeapNode* root, string str) {
     if (root == NULL) return;
 
-    // If this is a leaf node, print the character and its code
     if (root->data != '$') {
         cout << root->data << ": " << str << endl;
     }
@@ -130,32 +121,27 @@ void printCodes(MinHeapNode* root, string str) {
 }
 
 void HuffmanCodes(string data, vector<int> freq) {
-    // Create a list of nodes, each with a character and frequency
     vector<MinHeapNode*> nodes;
     for (int i = 0; i < data.size(); ++i) {
         nodes.push_back(new MinHeapNode(data[i], freq[i]));
     }
 
-    // Build the Huffman tree
+    // Huffman tree
     while (nodes.size() > 1) {
         sortNodes(nodes);
 
         MinHeapNode* left = nodes[0];
         MinHeapNode* right = nodes[1];
 
-        // Create a new internal node with frequency sum of two nodes
         MinHeapNode* top = new MinHeapNode('$', left->freq + right->freq);
 
         top->left = left;
         top->right = right;
 
-        // Remove the two nodes from the list and add the new node
         nodes.erase(nodes.begin());
         nodes.erase(nodes.begin());
         nodes.push_back(top);
     }
-
-    // The final node is the root of the Huffman tree
     printCodes(nodes[0], "");
 }
 
@@ -176,7 +162,6 @@ int main() {
         else if (choice == 2) {
             cout << "Inorder Traversal of Threaded Binary Tree: ";
             inorderTraversal(root);
-            cout << endl;
         }
         else if (choice == 3) {
             ThreadedNode* nextNode = nextInOrder(root);
